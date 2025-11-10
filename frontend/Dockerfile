@@ -6,10 +6,7 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
-
-# Copy application code
+# Copy application code (includes node_modules from Jenkins)
 COPY . .
 
 # Expose the port
