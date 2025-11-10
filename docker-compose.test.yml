@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # MongoDB Test Database
+  mongodb-test:
+    image: mongo:7.0
+    container_name: quickcart-mongodb-test
+    ports:
+      - "27018:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=quickcart-test
+    networks:
+      - test-network
+    tmpfs:
+      - /data/db
+
+  # Backend Test Service
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: quickcart-backend-test
+    ports:
+      - "5001:5000"
+    environment:
+      - MONGO_URI=mongodb://mongodb-test:27017/quickcart-test
+      - PORT=5000
+      - NODE_ENV=test
+    depends_on:
+      - mongodb-test
+    networks:
+      - test-network
+
+  # Frontend Test Service
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: quickcart-frontend-test
+    ports:
+      - "3001:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5001
+      - NODE_ENV=test
+    depends_on:
+      - backend-test
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge
