@@ -49,7 +49,7 @@ pipeline {
                     steps {
                         echo '📦 Installing backend dependencies...'
                         dir('backend') {
-                            sh 'npm install'
+                            sh 'npm install --legacy-peer-deps'
                         }
                         echo '✅ Backend dependencies installed'
                     }
@@ -58,7 +58,7 @@ pipeline {
                     steps {
                         echo '📦 Installing frontend dependencies...'
                         dir('frontend') {
-                            sh 'npm install'
+                            sh 'npm install --legacy-peer-deps --no-audit'
                         }
                         echo '✅ Frontend dependencies installed'
                     }
