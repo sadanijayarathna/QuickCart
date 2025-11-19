@@ -99,7 +99,12 @@ const Cart = () => {
               <span>Total</span>
               <span>${calculateTotal()}</span>
             </div>
-            <button className="checkout-btn">Proceed to Checkout</button>
+            <button 
+              className="checkout-btn"
+              onClick={() => navigate('/order-summary')}
+            >
+              Proceed to Checkout
+            </button>
             <button onClick={() => navigate('/products')} className="continue-shopping">
               Continue Shopping
             </button>

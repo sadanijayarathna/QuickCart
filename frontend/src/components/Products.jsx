@@ -93,9 +93,14 @@ const Products = () => {
       <Navbar />
       <ToastContainer />
       <div className="products-container">
-        <h1 className="page-title">
-          {searchQuery ? `Search Results for "${searchQuery}"` : (category || 'All Products')}
-        </h1>
+        <div className="products-header">
+          <button onClick={() => navigate('/home')} className="back-to-home-btn">
+            ← Back to Home
+          </button>
+          <h1 className="page-title">
+            {searchQuery ? `Search Results for "${searchQuery}"` : (category || 'All Products')}
+          </h1>
+        </div>
         {products.length === 0 ? (
           <p className="no-products">
             {searchQuery ? `No products found for "${searchQuery}"` : 'No products found.'}

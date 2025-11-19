@@ -6,7 +6,10 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Copy application code (includes node_modules from Jenkins)
+# Install dependencies in the container (builds native modules for Linux)
+RUN npm install
+
+# Copy application code (node_modules excluded via .dockerignore)
 COPY . .
 
 # Expose the port

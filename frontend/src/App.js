@@ -10,6 +10,9 @@ import Products from './components/Products';
 import ProductDetail from './components/ProductDetail';
 import Cart from './components/Cart';
 import Contact from './components/Contact';
+import OrderSummary from './components/OrderSummary';
+import Payment from './components/Payment';
+import MyOrders from './components/MyOrders';
 
 function App() {
   return (
@@ -23,6 +26,9 @@ function App() {
             <Route path="/products" element={<Products />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/order-summary" element={<OrderSummary />} />
+            <Route path="/payment" element={<Payment />} />
+            <Route path="/my-orders" element={<MyOrders />} />
             <Route path="/contact" element={<Contact />} />
           </Routes>
         </Router>

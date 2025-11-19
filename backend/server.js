@@ -7,6 +7,8 @@ const bcrypt = require('bcrypt');
 const User = require('./models/User');
 const Product = require('./models/Product');
 const Contact = require('./models/Contact');
+const Order = require('./models/Order');
+const Payment = require('./models/Payment');
 
 const app = express();
 app.use(cors());
@@ -50,8 +52,10 @@ app.post('/api/login', async (req, res) => {
     return res.json({ 
       success:true, 
       message:'Login successful!',
+      _id: user._id,
       fullName: user.fullName,
-      email: user.email
+      email: user.email,
+      phone: user.phone
     });
   }catch(err){
     console.error(err);
@@ -136,6 +140,239 @@ app.get('/api/contact', async (req, res) => {
   } catch(err) {
     console.error(err);
     return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ==================== ORDER ROUTES ====================
+
+// Create a new order
+app.post('/api/orders', async (req, res) => {
+  try {
+    const orderData = req.body;
+    
+    console.log('Received order request:', orderData);
+    
+    // Validate required fields
+    if (!orderData.userId || !orderData.items || orderData.items.length === 0) {
+      console.error('Order validation failed:', { 
+        hasUserId: !!orderData.userId, 
+        hasItems: !!orderData.items, 
+        itemsLength: orderData.items?.length 
+      });
+      return res.status(400).json({ success: false, message: 'Invalid order data: missing userId or items' });
+    }
+
+    const order = new Order(orderData);
+    await order.save();
+    
+    console.log('Order created successfully:', order._id);
+    return res.status(201).json({ success: true, order, message: 'Order created successfully' });
+  } catch(err) {
+    console.error('Error creating order:', err);
+    console.error('Error details:', err.message);
+    return res.status(500).json({ success: false, message: `Failed to create order: ${err.message}` });
+  }
+});
+
+// Get all orders for a specific user
+app.get('/api/orders/user/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const orders = await Order.find({ userId })
+      .sort({ orderDate: -1 })
+      .populate('paymentId');
+    
+    return res.json({ success: true, orders });
+  } catch(err) {
+    console.error('Error fetching user orders:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch orders' });
+  }
+});
+
+// Get a specific order by ID
+app.get('/api/orders/:orderId', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId).populate('paymentId');
+    
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+    
+    return res.json({ success: true, order });
+  } catch(err) {
+    console.error('Error fetching order:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch order' });
+  }
+});
+
+// Update order status
+app.patch('/api/orders/:orderId/status', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { orderStatus, paymentStatus } = req.body;
+    
+    const updateData = {};
+    if (orderStatus) updateData.orderStatus = orderStatus;
+    if (paymentStatus) updateData.paymentStatus = paymentStatus;
+    
+    const order = await Order.findByIdAndUpdate(
+      orderId,
+      updateData,
+      { new: true }
+    );
+    
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+    
+    return res.json({ success: true, order, message: 'Order updated successfully' });
+  } catch(err) {
+    console.error('Error updating order:', err);
+    return res.status(500).json({ success: false, message: 'Failed to update order' });
+  }
+});
+
+// Get all orders (for admin)
+app.get('/api/orders', async (req, res) => {
+  try {
+    const orders = await Order.find()
+      .sort({ orderDate: -1 })
+      .populate('userId', 'fullName email')
+      .populate('paymentId');
+    
+    return res.json({ success: true, orders });
+  } catch(err) {
+    console.error('Error fetching orders:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch orders' });
+  }
+});
+
+// Cancel an order
+app.delete('/api/orders/:orderId', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+    
+    // Only allow cancellation if order is still processing
+    if (order.orderStatus === 'Shipped' || order.orderStatus === 'Delivered') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Cannot cancel order that has been shipped or delivered' 
+      });
+    }
+    
+    order.orderStatus = 'Cancelled';
+    await order.save();
+    
+    return res.json({ success: true, order, message: 'Order cancelled successfully' });
+  } catch(err) {
+    console.error('Error cancelling order:', err);
+    return res.status(500).json({ success: false, message: 'Failed to cancel order' });
+  }
+});
+
+// ==================== PAYMENT ROUTES ====================
+
+// Create a new payment
+app.post('/api/payments', async (req, res) => {
+  try {
+    const paymentData = req.body;
+    
+    console.log('Received payment request:', paymentData);
+    
+    // Validate required fields
+    if (!paymentData.userId || !paymentData.amount || !paymentData.paymentMethod) {
+      console.error('Payment validation failed:', { 
+        hasUserId: !!paymentData.userId, 
+        hasAmount: !!paymentData.amount, 
+        hasMethod: !!paymentData.paymentMethod 
+      });
+      return res.status(400).json({ success: false, message: 'Invalid payment data: missing required fields' });
+    }
+
+    const payment = new Payment(paymentData);
+    await payment.save();
+    
+    console.log('Payment created successfully:', payment._id);
+    return res.status(201).json({ success: true, payment, message: 'Payment processed successfully' });
+  } catch(err) {
+    console.error('Error processing payment:', err);
+    return res.status(500).json({ success: false, message: `Failed to process payment: ${err.message}` });
+  }
+});
+
+// Get all payments for a specific user
+app.get('/api/payments/user/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const payments = await Payment.find({ userId })
+      .sort({ paymentDate: -1 })
+      .populate('orderId');
+    
+    return res.json({ success: true, payments });
+  } catch(err) {
+    console.error('Error fetching user payments:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch payments' });
+  }
+});
+
+// Get a specific payment by ID
+app.get('/api/payments/:paymentId', async (req, res) => {
+  try {
+    const { paymentId } = req.params;
+    const payment = await Payment.findById(paymentId).populate('orderId');
+    
+    if (!payment) {
+      return res.status(404).json({ success: false, message: 'Payment not found' });
+    }
+    
+    return res.json({ success: true, payment });
+  } catch(err) {
+    console.error('Error fetching payment:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch payment' });
+  }
+});
+
+// Get all payments (for admin)
+app.get('/api/payments', async (req, res) => {
+  try {
+    const payments = await Payment.find()
+      .sort({ paymentDate: -1 })
+      .populate('userId', 'fullName email')
+      .populate('orderId');
+    
+    return res.json({ success: true, payments });
+  } catch(err) {
+    console.error('Error fetching payments:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch payments' });
+  }
+});
+
+// Update payment status
+app.patch('/api/payments/:paymentId/status', async (req, res) => {
+  try {
+    const { paymentId } = req.params;
+    const { transactionStatus } = req.body;
+    
+    const payment = await Payment.findByIdAndUpdate(
+      paymentId,
+      { transactionStatus },
+      { new: true }
+    );
+    
+    if (!payment) {
+      return res.status(404).json({ success: false, message: 'Payment not found' });
+    }
+    
+    return res.json({ success: true, payment, message: 'Payment status updated' });
+  } catch(err) {
+    console.error('Error updating payment:', err);
+    return res.status(500).json({ success: false, message: 'Failed to update payment' });
   }
 });
 

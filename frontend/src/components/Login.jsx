@@ -29,8 +29,14 @@ const Login = () => {
 
       if (data && data.success) {
         setMessage({ type: 'success', text: data.message || 'Login successful!' });
-        // Store user data and redirect to home page
-        login({ email, fullName: data.fullName || email });
+        // Store user data including _id and redirect to home page
+        login({ 
+          _id: data._id,
+          email: data.email,
+          fullName: data.fullName || email,
+          phone: data.phone
+        });
+        console.log('User logged in:', { _id: data._id, email: data.email, fullName: data.fullName });
         setTimeout(() => navigate('/home'), 1000);
       } else {
         setMessage({ type: 'error', text: data.message || 'Invalid credentials' });

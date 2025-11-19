@@ -109,7 +109,7 @@ const Navbar = () => {
                     <span className="profile-name">{user?.fullName || 'User'}</span>
                     <span className="profile-email">{user?.email}</span>
                   </div>
-                  <Link to="/orders" className="profile-menu-item" onClick={() => setShowProfileMenu(false)}>
+                  <Link to="/my-orders" className="profile-menu-item" onClick={() => setShowProfileMenu(false)}>
                     My Orders
                   </Link>
                   <button className="profile-menu-item logout-btn" onClick={handleLogout}>
