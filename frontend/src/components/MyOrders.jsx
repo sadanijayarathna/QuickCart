@@ -25,7 +25,7 @@ const MyOrders = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/orders/user/${user._id}`);
+      const response = await fetch(`${API_BASE_URL}/api/orders/user/${user._id}`);
       const data = await response.json();
 
       if (data.success) {
@@ -57,7 +57,7 @@ const MyOrders = () => {
     if (!confirmCancel) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
         method: 'DELETE',
       });
 

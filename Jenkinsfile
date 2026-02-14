@@ -21,15 +21,15 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                echo '📥 Checking out code from GitHub...'
+                echo ' Checking out code from GitHub...'
                 checkout scm
-                echo '✅ Code checkout completed'
+                echo ' Code checkout completed'
             }
         }
         
         stage('Environment Check') {
             steps {
-                echo '🔍 Checking environment...'
+                echo ' Checking environment...'
                 sh '''
                     echo "Node version:"
                     node --version || echo "Node not installed"
@@ -47,20 +47,20 @@ pipeline {
             parallel {
                 stage('Backend Dependencies') {
                     steps {
-                        echo '📦 Installing backend dependencies...'
+                        echo ' Installing backend dependencies...'
                         dir('backend') {
                             sh 'npm install --legacy-peer-deps'
                         }
-                        echo '✅ Backend dependencies installed'
+                        echo ' Backend dependencies installed'
                     }
                 }
                 stage('Frontend Dependencies') {
                     steps {
-                        echo '📦 Installing frontend dependencies...'
+                        echo ' Installing frontend dependencies...'
                         dir('frontend') {
                             sh 'npm install --legacy-peer-deps --no-audit'
                         }
-                        echo '✅ Frontend dependencies installed'
+                        echo ' Frontend dependencies installed'
                     }
                 }
             }
@@ -70,7 +70,7 @@ pipeline {
             parallel {
                 stage('Backend Lint') {
                     steps {
-                        echo '🔍 Linting backend code...'
+                        echo ' Linting backend code...'
                         dir('backend') {
                             sh 'npm run lint || echo "No lint script configured"'
                         }
@@ -78,7 +78,7 @@ pipeline {
                 }
                 stage('Frontend Lint') {
                     steps {
-                        echo '🔍 Linting frontend code...'
+                        echo ' Linting frontend code...'
                         dir('frontend') {
                             sh 'npm run lint || echo "No lint script configured"'
                         }
@@ -91,7 +91,7 @@ pipeline {
             parallel {
                 stage('Backend Tests') {
                     steps {
-                        echo '🧪 Running backend tests...'
+                        echo ' Running backend tests...'
                         dir('backend') {
                             sh 'npm test || echo "No tests configured yet"'
                         }
@@ -99,7 +99,7 @@ pipeline {
                 }
                 stage('Frontend Tests') {
                     steps {
-                        echo '🧪 Running frontend tests...'
+                        echo ' Running frontend tests...'
                         dir('frontend') {
                             sh 'npm test -- --watchAll=false || echo "No tests configured yet"'
                         }
@@ -112,7 +112,7 @@ pipeline {
             parallel {
                 stage('Build Backend Image') {
                     steps {
-                        echo '🐳 Building backend Docker image...'
+                        echo ' Building backend Docker image...'
                         script {
                             dir('backend') {
                                 sh """
@@ -121,12 +121,12 @@ pipeline {
                                 """
                             }
                         }
-                        echo '✅ Backend image built successfully'
+                        echo ' Backend image built successfully'
                     }
                 }
                 stage('Build Frontend Image') {
                     steps {
-                        echo '🐳 Building frontend Docker image...'
+                        echo ' Building frontend Docker image...'
                         script {
                             dir('frontend') {
                                 sh """
@@ -135,7 +135,7 @@ pipeline {
                                 """
                             }
                         }
-                        echo '✅ Frontend image built successfully'
+                        echo ' Frontend image built successfully'
                     }
                 }
             }
@@ -143,7 +143,7 @@ pipeline {
         
         stage('Test Docker Images') {
             steps {
-                echo '🧪 Testing Docker images...'
+                echo ' Testing Docker images...'
                 sh '''
                     # Start test containers
                     docker compose -f docker-compose.test.yml up -d || echo "No test compose file"
@@ -157,13 +157,13 @@ pipeline {
                     # Cleanup test containers
                     docker compose -f docker-compose.test.yml down || echo "No test compose cleanup needed"
                 '''
-                echo '✅ Docker images tested'
+                echo ' Docker images tested'
             }
         }
         
         stage('Security Scan') {
             steps {
-                echo '🔒 Scanning Docker images for vulnerabilities...'
+                echo ' Scanning Docker images for vulnerabilities...'
                 sh """
                     # Use Trivy for security scanning (if installed)
                     trivy image ${BACKEND_IMAGE}:${IMAGE_TAG} || echo "Trivy not installed, skipping security scan"
@@ -177,7 +177,7 @@ pipeline {
                 branch 'main'
             }
             steps {
-                echo '📤 Pushing images to Docker Hub...'
+                echo ' Pushing images to Docker Hub...'
                 script {
                     sh """
                         echo \$DOCKERHUB_CREDENTIALS_PSW | docker login -u \$DOCKERHUB_CREDENTIALS_USR --password-stdin
@@ -193,7 +193,7 @@ pipeline {
                         docker logout
                     """
                 }
-                echo '✅ Images pushed to Docker Hub successfully'
+                echo ' Images pushed to Docker Hub successfully'
             }
         }
         
@@ -202,7 +202,7 @@ pipeline {
                 branch 'main'
             }
             steps {
-                echo '🚀 Deploying to staging environment...'
+                echo ' Deploying to staging environment...'
                 sh '''
                     # Pull latest images
                     docker compose pull
@@ -219,7 +219,7 @@ pipeline {
                     # Health check
                     curl -f http://localhost:5000/api/products || echo "Staging deployment health check"
                 '''
-                echo '✅ Deployed to staging successfully'
+                echo 'Deployed to staging successfully'
             }
         }
         
@@ -228,7 +228,7 @@ pipeline {
                 branch 'main'
             }
             steps {
-                echo '🧪 Running integration tests...'
+                echo ' Running integration tests...'
                 sh '''
                     # Test backend API
                     curl -f http://localhost:5000/api/products
@@ -239,13 +239,13 @@ pipeline {
                     # Test database connection
                     docker exec quickcart-backend node -e "const mongoose = require('mongoose'); mongoose.connect('mongodb://mongodb:27017/quickcart').then(() => console.log('DB Connected')).catch(err => console.error(err));" || echo "DB test"
                 '''
-                echo '✅ Integration tests passed'
+                echo ' Integration tests passed'
             }
         }
         
         stage('Cleanup') {
             steps {
-                echo '🧹 Cleaning up...'
+                echo ' Cleaning up...'
                 sh '''
                     # Remove old images
                     docker image prune -f --filter "until=72h"
@@ -253,24 +253,24 @@ pipeline {
                     # Remove dangling images
                     docker image prune -f
                 '''
-                echo '✅ Cleanup completed'
+                echo ' Cleanup completed'
             }
         }
     }
     
     post {
         always {
-            echo '📊 Pipeline execution completed'
+            echo ' Pipeline execution completed'
             // Archive artifacts
             archiveArtifacts artifacts: '**/package.json', allowEmptyArchive: true
         }
         success {
-            echo '✅ Pipeline succeeded!'
+            echo ' Pipeline succeeded!'
             // Send success notification
             emailext(
-                subject: "✅ Jenkins Build SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                subject: "Jenkins Build SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """
-                    Build Status: SUCCESS ✅
+                    Build Status: SUCCESS 
                     
                     Job: ${env.JOB_NAME}
                     Build Number: ${env.BUILD_NUMBER}
@@ -285,12 +285,12 @@ pipeline {
             )
         }
         failure {
-            echo '❌ Pipeline failed!'
+            echo ' Pipeline failed!'
             // Send failure notification
             emailext(
-                subject: "❌ Jenkins Build FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                subject: " Jenkins Build FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """
-                    Build Status: FAILED ❌
+                    Build Status: FAILED 
                     
                     Job: ${env.JOB_NAME}
                     Build Number: ${env.BUILD_NUMBER}
@@ -304,10 +304,10 @@ pipeline {
             )
         }
         unstable {
-            echo '⚠️ Pipeline unstable'
+            echo ' Pipeline unstable'
         }
         cleanup {
-            echo '🧹 Final cleanup...'
+            echo ' Final cleanup...'
             // Clean workspace
             cleanWs()
         }

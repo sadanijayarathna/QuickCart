@@ -13,15 +13,15 @@ async function waitForMongo(retries = 0) {
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000
     });
-    console.log('✅ Connected to MongoDB');
+    console.log('Connected to MongoDB');
     return true;
   } catch (err) {
     if (retries < MAX_RETRIES) {
-      console.log(`⏳ Waiting for MongoDB... (attempt ${retries + 1}/${MAX_RETRIES})`);
+      console.log(`Waiting for MongoDB... (attempt ${retries + 1}/${MAX_RETRIES})`);
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
       return waitForMongo(retries + 1);
     } else {
-      console.error('❌ Could not connect to MongoDB after', MAX_RETRIES, 'attempts');
+      console.error('Could not connect to MongoDB after', MAX_RETRIES, 'attempts');
       throw err;
     }
   }
@@ -34,7 +34,7 @@ async function checkAndSeedDatabase() {
     const count = await Product.countDocuments();
     
     if (count === 0) {
-      console.log('📦 Database is empty, seeding products...');
+      console.log('Database is empty, seeding products...');
       
       return new Promise((resolve, reject) => {
         const seed = spawn('node', ['seedProducts.js']);
@@ -49,19 +49,19 @@ async function checkAndSeedDatabase() {
         
         seed.on('close', (code) => {
           if (code === 0) {
-            console.log('✅ Seeding completed successfully');
+            console.log('Seeding completed successfully');
             resolve();
           } else {
-            console.error('❌ Seeding failed with code', code);
+            console.error('Seeding failed with code', code);
             reject(new Error('Seeding failed'));
           }
         });
       });
     } else {
-      console.log('✅ Database already has', count, 'products, skipping seed');
+      console.log('Database already has', count, 'products, skipping seed');
     }
   } catch (err) {
-    console.error('❌ Error checking database:', err.message);
+    console.error('Error checking database:', err.message);
     throw err;
   }
 }
@@ -69,7 +69,7 @@ async function checkAndSeedDatabase() {
 // Main startup function
 async function startup() {
   try {
-    console.log('🚀 Starting QuickCart Backend...');
+    console.log('Starting QuickCart Backend...');
     
     // Wait for MongoDB
     await waitForMongo();
@@ -82,7 +82,7 @@ async function startup() {
     console.log('Closed seeding connection');
     
     // Start the main application
-    console.log('🎯 Starting main server...');
+    console.log('Starting main server...');
     const server = spawn('node', ['server.js'], {
       stdio: 'inherit'
     });
@@ -93,7 +93,7 @@ async function startup() {
     });
     
   } catch (err) {
-    console.error('❌ Startup failed:', err.message);
+    console.error('Startup failed:', err.message);
     process.exit(1);
   }
 }

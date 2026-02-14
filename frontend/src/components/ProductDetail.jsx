@@ -4,7 +4,7 @@ import { useCart } from '../context/CartContext';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import '../styles/ProductDetail.css';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';\nimport API_BASE_URL from '../config';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -20,7 +20,7 @@ const ProductDetail = () => {
 
   const fetchProduct = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/products/${id}`);
+      const response = await fetch(`${API_BASE_URL}/api/products/${id}`);
       const data = await response.json();
       
       if (data.success) {

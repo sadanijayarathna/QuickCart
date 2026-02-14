@@ -5,7 +5,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import '../styles/Products.css';
 import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import 'react-toastify/dist/ReactToastify.css';\nimport API_BASE_URL from '../config';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -22,7 +22,7 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      let url = 'http://localhost:5000/api/products';
+      let url = `${API_BASE_URL}/api/products`;
       const params = [];
       
       if (category) {

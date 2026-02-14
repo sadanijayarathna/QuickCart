@@ -149,23 +149,12 @@ PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
 echo "Frontend: http://$PUBLIC_IP or http://$PUBLIC_IP:3000"
 echo "Backend API: http://$PUBLIC_IP:5000"
 echo ""
-echo "Waiting for services to be ready..."
-sleep 30
 
-# Check status
-docker compose ps
+# Check status in background (don't block SSH)
+nohup bash -c 'sleep 60; docker compose ps' &
 STARTEOF
 
 chmod +x /opt/quickcart/start.sh
-
-# Pull Docker images (must run as root since ubuntu user session not active yet)
-echo "Pulling Docker images..."
-cd /opt/quickcart
-echo "Waiting for Docker daemon to be fully ready..."
-sleep 10
-docker pull ${dockerhub_username}/quickcart-backend:latest || echo "Warning: Failed to pull backend image"
-docker pull ${dockerhub_username}/quickcart-frontend:latest || echo "Warning: Failed to pull frontend image"
-docker pull mongo:7.0 || echo "Warning: Failed to pull mongodb image"
 
 # Create systemd service for auto-start
 echo "Creating systemd service..."
@@ -193,7 +182,7 @@ sudo systemctl enable quickcart.service
 
 # Start the application
 echo "Starting QuickCart application..."
-sudo -u ubuntu /opt/quickcart/start.sh
+nohup sudo -u ubuntu /opt/quickcart/start.sh > /var/log/quickcart-startup.log 2>&1 &
 
 echo "========================================="
 echo "QuickCart Setup Complete!"

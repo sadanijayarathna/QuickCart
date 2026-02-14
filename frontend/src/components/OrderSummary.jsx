@@ -107,7 +107,7 @@ const OrderSummary = () => {
 
         console.log('Sending order data:', orderData);
 
-        const response = await fetch('http://localhost:5000/api/orders', {
+        const response = await fetch(`${API_BASE_URL}/api/orders`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

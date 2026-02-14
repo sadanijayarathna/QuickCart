@@ -100,15 +100,6 @@ resource "aws_security_group" "quickcart_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # MongoDB (for internal access)
-  ingress {
-    description = "MongoDB"
-    from_port   = 27017
-    to_port     = 27017
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Restrict this in production
-  }
-
   # HTTP
   ingress {
     description = "HTTP"
@@ -184,7 +175,7 @@ resource "aws_instance" "quickcart" {
 # Elastic IP for consistent public IP
 resource "aws_eip" "quickcart_eip" {
   instance = aws_instance.quickcart.id
-  domain   = "vpc"
+  vpc      = true
 
   tags = {
     Name        = "${var.project_name}-eip"

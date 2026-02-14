@@ -214,7 +214,7 @@ const Payment = () => {
 
       console.log('Step 1: Creating payment...', paymentData);
 
-      const paymentResponse = await fetch('http://localhost:5000/api/payments', {
+      const paymentResponse = await fetch(`${API_BASE_URL}/api/payments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -259,7 +259,7 @@ const Payment = () => {
 
       console.log('Step 2: Creating order...', orderData);
 
-      const orderResponse = await fetch('http://localhost:5000/api/orders', {
+      const orderResponse = await fetch(`${API_BASE_URL}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
